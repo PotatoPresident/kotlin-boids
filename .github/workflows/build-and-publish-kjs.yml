@@ -5,6 +5,15 @@ jobs:
     name: Test and Build
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/loom-cache
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-
 
       # Setup Java 1.8 environment for the next steps
       - name: Setup Java
@@ -15,6 +24,9 @@ jobs:
       # Check out current repository
       - name: Fetch Sources
         uses: actions/checkout@v2
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
 
       # Build application
       - name: Test and Build
