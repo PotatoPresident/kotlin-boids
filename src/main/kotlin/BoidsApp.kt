@@ -74,7 +74,7 @@ class BoidsApp(
                 changed += { source, old, new -> cohesion = new }
             }
 
-            for (i in 1..(bounds.size.area/15000).toInt()) {
+            for (i in 1..(bounds.size.area/18000).toInt()) {
                 flock += Boid(
                     Point((0..size.width.toInt()).random(), (0..size.height.toInt()).random())
                 )
@@ -86,10 +86,6 @@ class BoidsApp(
             }
 
             render = {
-                rect(bounds.atOrigin, Stroke(Color.Red))
-                line(Point(0, 0), Point(0, 100), Stroke(Color.Green))
-                line(Point(0, 0), Point(100, 0), Stroke(Color.Green))
-
                 for (boid in flock) {
                     boid.applyRules(flock)
                     //pointerPos?.let { boid.addForce(boid.target(it) * 0.8) }
