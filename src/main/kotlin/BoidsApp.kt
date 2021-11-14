@@ -17,7 +17,6 @@ import io.nacular.doodle.scheduler.Scheduler
 import io.nacular.doodle.theme.ThemeManager
 import io.nacular.doodle.theme.adhoc.DynamicTheme
 import io.nacular.measured.units.Angle
-import io.nacular.measured.units.Measure
 import io.nacular.measured.units.Time
 import io.nacular.measured.units.times
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -51,6 +50,7 @@ class BoidsApp(
 
         display += view {
             size = display.size
+            println(size.area)
 
             scheduler.every(10 * Time.milliseconds) {
                 rerender()
@@ -74,7 +74,7 @@ class BoidsApp(
                 changed += { source, old, new -> cohesion = new }
             }
 
-            for (i in 1..150) {
+            for (i in 1..(bounds.size.area/15000).toInt()) {
                 flock += Boid(
                     Point((0..size.width.toInt()).random(), (0..size.height.toInt()).random())
                 )
@@ -91,7 +91,7 @@ class BoidsApp(
                 line(Point(0, 0), Point(100, 0), Stroke(Color.Green))
 
                 for (boid in flock) {
-                    boid.applyRules(flock, this)
+                    boid.applyRules(flock)
                     //pointerPos?.let { boid.addForce(boid.target(it) * 0.8) }
                     boid.move(this)
                     boid.render(this)
@@ -170,7 +170,7 @@ data class Boid(
         } else Point(0, 0)
     }
 
-    private fun cohesion(flock: Set<Boid>, canvas: Canvas): Point {
+    private fun cohesion(flock: Set<Boid>): Point {
         var avgPos = Point(0, 0)
         var total = 0
         for (boid in flock) {
@@ -226,10 +226,10 @@ data class Boid(
         return steerForce.limit(maxSteerForce)
     }
 
-    fun applyRules(flock: Set<Boid>, canvas: Canvas) {
+    fun applyRules(flock: Set<Boid>) {
         addForce(separation(flock) * separation)
         addForce(align(flock) * alignment)
-        addForce(cohesion(flock, canvas) * cohesion)
+        addForce(cohesion(flock) * cohesion)
     }
 }
 
