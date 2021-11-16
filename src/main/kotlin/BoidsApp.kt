@@ -25,6 +25,8 @@ var separation = 1.5
 var alignment = 1.0
 var cohesion = 1.0
 
+var randomness = 1.0
+
 var fish: Image? = null
 
 @DelicateCoroutinesApi

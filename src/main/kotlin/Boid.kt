@@ -6,9 +6,7 @@ import io.nacular.doodle.geometry.ConvexPolygon
 import io.nacular.doodle.geometry.Point
 import io.nacular.measured.units.Angle
 import io.nacular.measured.units.times
-import kotlin.math.atan2
-import kotlin.math.pow
-import kotlin.math.sqrt
+import kotlin.math.*
 import kotlin.random.Random
 
 private val colors = arrayListOf(Color.Green.lighter(0.3f), Color.Blue.lighter(0.3f), Color.Cyan.lighter(0.2f))
@@ -71,7 +69,7 @@ data class Boid(
         }
         return if (total > 0) {
             avg /= total
-            avg = avg.normalize()
+            avg = avg.normalized()
             avg *= this.maxSpeed
 
             var steerForce = avg - this.velocity
@@ -106,7 +104,7 @@ data class Boid(
             val distance = this.pos.distanceFrom(boid.pos)
             if (boid !== this && distance < targetSep) {
                 var diff = this.pos - boid.pos
-                diff = diff.normalize()
+                diff = diff.normalized()
                 diff /= (distance)
                 steerForce += diff
 
@@ -117,8 +115,8 @@ data class Boid(
             steerForce /= total
         }
 
-        if (steerForce.mag() > 0.0) {
-            steerForce = steerForce.normalize()
+        if (steerForce.mag > 0.0) {
+            steerForce = steerForce.normalized()
             steerForce *= this.maxSpeed
             steerForce -= this.velocity
             steerForce = steerForce.limit(this.maxSteerForce)
@@ -129,10 +127,15 @@ data class Boid(
 
     fun target(point: Point): Point {
         var targetVec = point - this.pos
-        targetVec = targetVec.normalize()
+        targetVec = targetVec.normalized()
         targetVec *= maxSpeed
 
         val steerForce = targetVec - this.velocity
+        return steerForce.limit(maxSteerForce)
+    }
+
+    fun randomize(): Point {
+        val steerForce = this.velocity.rotate((-randomness..randomness).random()) - this.velocity
         return steerForce.limit(maxSteerForce)
     }
 
@@ -143,25 +146,29 @@ data class Boid(
     }
 }
 
+private fun ClosedFloatingPointRange<Double>.random(): Double = Random.nextDouble(this.start, this.endInclusive)
+
 infix fun Double.fmod(other: Double): Double {
     return ((this % other) + other) % other
 }
 
-fun Point.normalize(): Point {
+fun Point.normalized(): Point {
     val l = 1.0 / sqrt(x * x + y * y)
     return Point(x * l, y * l)
 }
 
-fun Point.mag() = sqrt(x.pow(2) + y.pow(2))
-fun Point.magSq() = x.pow(2) + y.pow(2)
+val Point.mag get() = sqrt(x.pow(2) + y.pow(2))
+val Point.magSq get() = x.pow(2) + y.pow(2)
 
 fun Point.limit(max: Double): Point {
-    if (magSq() > max.pow(2)) {
-        val norm = normalize()
+    if (magSq > max.pow(2)) {
+        val norm = normalized()
         return norm * max
     }
 
     return this
 }
+
+fun Point.rotate(angle: Double) = Point(x * cos(angle) - y * sin(angle), x * sin(angle) + y * cos(angle))
 
 val Point.heading get() = atan2(y, x)
