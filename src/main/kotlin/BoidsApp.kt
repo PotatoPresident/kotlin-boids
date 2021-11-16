@@ -46,7 +46,9 @@ class BoidsApp(
 
         display += view {
             size = display.size
-            println(size.area)
+            display.sizeChanged += { _, _, new ->
+                size = new
+            }
 
             scheduler.every(10 * Time.milliseconds) {
                 rerender()
