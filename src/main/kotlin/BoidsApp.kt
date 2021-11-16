@@ -3,29 +3,23 @@ import io.nacular.doodle.controls.range.Slider
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.plusAssign
 import io.nacular.doodle.core.view
-import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
-import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.paint
+import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.event.PointerMotionListener
-import io.nacular.doodle.geometry.ConvexPolygon
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.image.ImageLoader
 import io.nacular.doodle.scheduler.Scheduler
+import io.nacular.doodle.system.SystemPointerEvent
 import io.nacular.doodle.theme.ThemeManager
 import io.nacular.doodle.theme.adhoc.DynamicTheme
-import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Time
 import io.nacular.measured.units.times
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlin.math.atan2
-import kotlin.math.pow
-import kotlin.math.sqrt
-import kotlin.random.Random
 
 var separation = 1.5
 var alignment = 1.0
@@ -74,15 +68,21 @@ class BoidsApp(
                 changed += { source, old, new -> cohesion = new }
             }
 
-            for (i in 1..(bounds.size.area/18000).toInt()) {
+            for (i in 1..(bounds.size.area / 18000).toInt()) {
                 flock += Boid(
                     Point((0..size.width.toInt()).random(), (0..size.height.toInt()).random())
                 )
             }
 
             var pointerPos: Point? = null
-            pointerMotionChanged += PointerMotionListener.moved { event ->
-                pointerPos = event.location
+            pointerChanged += PointerListener.pressed { event ->
+                if (event.buttons.contains(SystemPointerEvent.Button.Button1)) pointerPos = event.location
+            }
+            pointerMotionChanged += PointerMotionListener.dragged { event ->
+                if (event.buttons.contains(SystemPointerEvent.Button.Button1)) pointerPos = event.location
+            }
+            pointerChanged += PointerListener.released {
+                pointerPos = null
             }
 
             render = {
@@ -90,7 +90,7 @@ class BoidsApp(
 
                 for (boid in flock) {
                     boid.applyRules(flock)
-                    //pointerPos?.let { boid.addForce(boid.target(it) * 0.8) }
+                    pointerPos?.let { boid.addForce(boid.target(it) * 0.8) }
                     boid.move(this)
                     boid.render(this)
                 }
